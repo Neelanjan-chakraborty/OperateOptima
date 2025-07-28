@@ -245,7 +245,7 @@ This project demonstrates production-ready Apache Spark skills suitable for:
 
 <div align="center">
 
-**Built with ❤️ using Apache Spark & Python**
+**Built with ❤️ using Apache Spark & Python by Neelanjan**
 
 [Live Demo](http://localhost:8000) • [Documentation](docs/) • [Performance Benchmarks](benchmarks/)
 

@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  operate-optima:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: operate-optima-etl
+    environment:
+      - SPARK_MASTER_URL=local[*]
+      - SPARK_DRIVER_MEMORY=2g
+      - SPARK_EXECUTOR_MEMORY=2g
+      - SPARK_DRIVER_MAX_RESULT_SIZE=1g
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./output:/app/output
+    ports:
+      - "4040:4040"  # Spark UI
+      - "4041:4041"  # Spark UI (additional)
+    networks:
+      - spark-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import pyspark; print('Spark OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Optional: Web interface for the landing page
+  web-interface:
+    image: nginx:alpine
+    container_name: operate-optima-web
+    ports:
+      - "8080:80"
+    volumes:
+      - ./web:/usr/share/nginx/html:ro
+    networks:
+      - spark-network
+    restart: unless-stopped
+    depends_on:
+      - operate-optima
+
+  # Optional: Monitoring with Prometheus (for production)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: operate-optima-monitoring
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - spark-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+networks:
+  spark-network:
+    driver: bridge
+
+volumes:
+  spark-data:
+    driver: local
